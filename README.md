@@ -6,6 +6,10 @@ pip install opencv-python ultralytics
 
 entrar na pasta Detector-VSC
 
+Antes de rodar vereficar se é webcam ou camera
+Se for camera ir no codigo "cap = cv2.VideoCapture(1)" e vereficar se ta com 1
+Se for webcam mudar para "cap = cv2.VideoCapture(0)" 
+
 e rodar o arquivo com:
 
 //Visao computacional filtrada para apenas carros e pessoas
