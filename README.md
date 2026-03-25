@@ -1,25 +1,42 @@
-# project-team
+# SmarTraffic
 
-Antes de rodar, baixar o Opencv e o YOLO
+Projeto de visão computacional para detecção de objetos utilizando OpenCV e YOLO.  
+Inclui módulos para detecção geral de objetos, contagem de veículos e reconhecimento facial.
 
+## Requisitos
+
+Instale as dependências necessárias:
+
+```bash
 pip install opencv-python ultralytics
+```
 
-entrar na pasta Detector-VSC
+## Configuração
+1. Acesse a pasta do projeto:
 
-Antes de rodar vereficar se é webcam ou camera
-Se for camera ir no codigo "cap = cv2.VideoCapture(1)" e vereficar se ta com 1
-Se for webcam mudar para "cap = cv2.VideoCapture(0)" 
+```bash
+cd Detector-VSC
+```
 
-e rodar o arquivo com:
+2. Configure a fonte de captura de vídeo:
+- No código, localize a linha:
+```bash
+cap = cv2.VideoCapture(0)
+```
+- Para webcam, mantenha o valor ```0```.
+- Para câmera externa ou IP, altere para ```1``` ou conforme o índice do dispositivo.
 
-//Visao computacional filtrada para apenas carros e pessoas
-python .\Contador_carros.py
+## Execução
+Os scripts disponíveis e suas respectivas funções:
 
-//Visao computacional com o YOLO mais potente
-python .\VSC-meio.py
+| Arquivo | Descrição | 
+|----------|----------|
+| Contador_carros.py  | Detecção filtrada para veículos e pessoas | 
+| VSC-meio.py  | Execução do YOLO em sua configuração padrão. |
+| Objetos.py | Detecção de todos os objetos suportados pelo modelo. |
+| main.py | Reconhecimento facial. |
 
-//Visao computacional com identificaçao de todos os objetos
-python .\Objetos.py
-
-//Visao computacional com Reconhecimento facial 
-python .\main.py
+Exemplo de execução:
+```bash
+python Contador_carros.py
+```
