@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Semáforo Inteligente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .video-container {
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .video-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .info-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-weight: 500;
+        }
+
+        .status-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .semaforo-status {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .led {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .led-active {
+            background: #f44336;
+            box-shadow: 0 0 20px rgba(244,67,54,0.8);
+            color: white;
+        }
+
+        .led-inactive {
+            background: #555;
+            color: #888;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .control-group button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .control-group button:hover {
+            transform: translateY(-2px);
+        }
+
+        .manual-control {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .manual-control button {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.2em;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚦 Sistema de Semáforo Inteligente</h1>
+            <p>Detecção de veículos com YOLOv8 e controle automático</p>
+        </div>
+
+        <div class="main-content">
+            <div class="video-container">
+                <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Video Stream">
+            </div>
+
+            <div class="info-panel">
+                <div class="status-card">
+                    <h3>📊 Status Atual</h3>
+                    <div class="status-item">
+                        <span class="status-label">🚗 Veículos Detectados:</span>
+                        <span class="status-value" id="car-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">🔌 Arduino:</span>
+                        <span class="status-value" id="arduino-status">---</span>
+                    </div>
+                </div>
+
+                <div class="semaforo-status">
+                    <div class="led" id="led-a">A</div>
+                    <div class="led" id="led-b">B</div>
+                </div>
+
+                <div class="control-group">
+                    <label>🎯 Limiar para Troca para B (carros):</label>
+                    <input type="number" id="limiar-troca-b" value="3" min="1">
+                    <button onclick="updateLimiar('troca_b')">Atualizar</button>
+                </div>
+
+                <div class="control-group">
+                    <label>🎯 Limiar para Volta para A (carros):</label>
+                    <input type="number" id="limiar-volta-a" value="1" min="0">
+                    <button onclick="updateLimiar('volta_a')">Atualizar</button>
+                </div>
+
+                <div class="manual-control">
+                    <button onclick="setSemaforo('A')" style="background: #4CAF50;">🔴 Forçar Semáforo A</button>
+                    <button onclick="setSemaforo('B')" style="background: #2196F3;">🟢 Forçar Semáforo B</button>
+                </div>
+
+                <div class="alert alert-info">
+                    💡 <strong>Como funciona:</strong><br>
+                    - No estado A, quando carros ≥ Limiar B → muda para B<br>
+                    - No estado B, quando carros ≤ Limiar A → volta para A
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('car-count').innerText = data.carros;
+                    document.getElementById('arduino-status').innerHTML = data.arduino_conectado ? '✅ Conectado' : '⚠️ Simulação';
+                    
+                    // Atualizar LEDs do semáforo
+                    const ledA = document.getElementById('led-a');
+                    const ledB = document.getElementById('led-b');
+                    
+                    if (data.semaforo === 'A') {
+                        ledA.className = 'led led-active';
+                        ledB.className = 'led led-inactive';
+                    } else {
+                        ledA.className = 'led led-inactive';
+                        ledB.className = 'led led-active';
+                    }
+                });
+        }
+
+        function updateLimiar(tipo) {
+            let valor;
+            if (tipo === 'troca_b') {
+                valor = document.getElementById('limiar-troca-b').value;
+            } else {
+                valor = document.getElementById('limiar-volta-a').value;
+            }
+            
+            fetch(`/set_limiar/${tipo}/${valor}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Limiar atualizado com sucesso!');
+                    }
+                });
+        }
+
+        function setSemaforo(sinal) {
+            fetch(`/set_semaforo/${sinal}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`Semáforo alterado para ${sinal}`);
+                        updateStatus();
+                    }
+                });
+        }
+
+        function showNotification(message) {
+            // Criar notificação simples
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.right = '20px';
+            notification.style.backgroundColor = '#4CAF50';
+            notification.style.color = 'white';
+            notification.style.padding = '10px 20px';
+            notification.style.borderRadius = '5px';
+            notification.style.zIndex = '1000';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Atualizar status a cada segundo
+        setInterval(updateStatus, 1000);
+        updateStatus();
+    </script>
+</body>
+</html>
